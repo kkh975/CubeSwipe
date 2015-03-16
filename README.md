@@ -33,12 +33,12 @@ CubeSwipe
 ####javascript
 jquery 플러그인을 작성할 경우 아래와 같이 작성합니다.
 ```javascript
-$( '.listWrap' ).slideCubeSwipe( );
+$( '.listWrap' ).cubeSwipe( );
 ```
 
 javascript으로 작성할 경우 아래와 같이 작성합니다.
 ```javascript
-new SlideCubeSwipe( {
+new CubeSwipe( {
 	wrap: document.querySelectorAll( '.listWrap' )[ 0 ],
 	list: document.querySelectorAll( '.listWrap li' ),
 } );
@@ -85,7 +85,9 @@ new SlideCubeSwipe( {
 + create: {Function} 생성시 콜백 함수
 + before: {Function} 슬라이더 이동 전 콜백 함수
 + active: {Function} 슬라이더 이동 후 콜백 함수	
-					
-					
-						
-						
+
+Copyrights
+----------
+- license: http://blim.mit-license.org/
+- site: http://www.blim.co.kr/
+- email: kkh975@naver.com
