@@ -64,7 +64,7 @@
 	/**
 	 * @method: 특정 슬라이더 이동 플러그인
 	 */
-	$.fn.cubeSwipe2toSlide = function( _idx ){
+	$.fn.cubeSwipe2slide = function( _idx ){
 		return this.each( function(){
 			$( this ).data( 'cubeSwipe' ).toSlide( _idx );
 		});
@@ -103,20 +103,20 @@ function CubeSwipe( __setting ){
 		is_Move = false,
 		list_Width = 0,
 		list_Len = 0,
-		list_Angle_Arr = [],
-		cube_Radius = 0,
+		list_Angle_Arr = [],		// item별 위치
+		cube_Radius = 0,			// list의 회전 위치
 		now_Idx = 0,
 		to_Idx = 0,
 		browser_Prefix = {};
 
 	var default_Option = {
-		wrap: [],					// require, 리스트 감싸는 태그
-		list: [],					// require, 리스트
-		pages: [],					// 슬라이더 페이징 이동
-		toStart: [],				// 애니메이션 시작 버튼
-		toStop: [],					// 애니메이션 멈춤 버튼
-		toPrev: [],					// 이전 이동 버튼
-		toNext: [],					// 다음 이동 버튼
+		wrap: null,					// require, 리스트 감싸는 태그
+		list: null,					// require, 리스트
+		pages: null,				// 슬라이더 페이징 이동
+		toStart: null,				// 애니메이션 시작 버튼
+		toStop: null,				// 애니메이션 멈춤 버튼
+		toPrev: null,				// 이전 이동 버튼
+		toNext: null,				// 다음 이동 버튼
 		startEvents: 'click',		// 슬라이드쇼 시작 이벤트
 		stopEvents: 'click',		// 슬라이드쇼 정지 이벤트
 		moveEvents: 'click',		// 이동 작동 이벤트
@@ -133,7 +133,7 @@ function CubeSwipe( __setting ){
 	var helper = { // 보조함수
 
 		/**
-		 * jQuery extend 기능
+		 * @method: jQuery extend 기능
 		 */
 		extend: function( _target, _object ){
 			var prop = null,
@@ -147,7 +147,7 @@ function CubeSwipe( __setting ){
 		},
 
 		/**
-		 * 배열 여부
+		 * @method: 배열 여부
 		 */
 		isArray: function( _arr ){
 			if ( _arr ){
@@ -165,22 +165,10 @@ function CubeSwipe( __setting ){
 		},
 
 		/**
-		 * DOM에서 배열변환
+		 * @method: DOM에서 배열변환
 		 */
 		dom2Array: function( _dom ){
-			var return_arr = [],
-				len = _dom.length,
-				i = 0;
-
-			if ( len > 0 ){
-				for ( i = 0; i < _dom.length; i++ ){
-					return_arr.push( _dom[ i ] );
-				}
-			} else {
-				return_arr.push( _dom );
-			}
-
-			return return_arr;
+			return _dom.length > 0 ? Array.prototype.slice.call( _dom ) : [ _dom ];
 		},
 
 		/**
@@ -188,6 +176,17 @@ function CubeSwipe( __setting ){
 		 * @return: {Boolean or String}
 		 */
 		getCssPrefix: function(){
+			/*TRANSITIONENDEVENT_VENDORS = [
+				'transitionEnd',
+				'transitionend',
+				'otransitionend',
+				'oTransitionEnd',
+				'webkitTransitionEnd' ]
+			ANIMATIONEVENT_VENDORS = [
+				'animationEnd',
+				'MSAnimationEnd',
+				'oanimationEnd',
+				'webkitAnimationEnd' ]*/
 			var transitionsCss = [ '-webkit-transition', 'transition' ],
 				transformsCss = [ '-webkit-transform', 'transform' ],
 				animationsCss = [ '-webkit-animation', 'animation' ],
@@ -211,7 +210,7 @@ function CubeSwipe( __setting ){
 				'animationsCss': animationsCss[ isWebkit ? 0 : 1 ],
 				'transformsJs': transformsJs[ isWebkit ? 0 : 1 ],
 				'transitionsJs': transitionsJs[ isWebkit ? 0 : 1 ],
-				'animationsJs': animationsCss[ isWebkit ? 0 : 1 ],
+				'animationsJs': animationsJs[ isWebkit ? 0 : 1 ],
 				'transitionsendJs': transitionsendJs[ isWebkit ? 0 : 1 ],
 				'animationendJs': animationendJs[ isWebkit ? 0 : 1 ]
 			};
@@ -260,11 +259,10 @@ function CubeSwipe( __setting ){
 		},
 
 		/**
-		 * @method: Transit 리스트 설정
+		 * @method: 전체 위치 설정
 		 */
 		setListTransition: function( _speed, _add_angle, _is_set ){
 			var angle = 0,
-				len = 0,
 				i = 0;
 
 			for ( i = 0; i < list_Len; i++ ){
@@ -349,8 +347,8 @@ function CubeSwipe( __setting ){
 		 * @method: 이전으로 이동가능한가
 		 */
 		canPrevMove: function(){
-
-			if ( !setting.loop && getPrevIdx() === -1 ){ // 루프가 아니면서 가장자리에 있을때
+			// 루프가 아니면서 가장자리에 있을때
+			if ( !setting.loop && getPrevIdx() === -1 ){ 
 				return false;
 			}
 
@@ -364,7 +362,8 @@ function CubeSwipe( __setting ){
 			var next_idx = getNextIdx(),
 				len = ( is_Loop_Len_2 ? list_Len - 2 : list_Len ) - 1;
 
-			if ( !setting.loop && ( next_idx === -1 || next_idx > len )){ // 루프가 아니면서 가장자리에 있을때
+			// 루프가 아니면서 가장자리에 있을때
+			if ( !setting.loop && ( next_idx === -1 || next_idx > len )){ 
 				return false;
 			}
 
@@ -376,7 +375,6 @@ function CubeSwipe( __setting ){
 		 * @param: {Object} 이벤트 객체
 		 */
 		setStart: function( e ){
-
 			if ( touchEvents.is_touch_start || is_Move ){
 				return false;
 			}
@@ -404,8 +402,9 @@ function CubeSwipe( __setting ){
 				scroll_dist = e.touches[ 0 ].pageY - touchEvents.touch_start_y;	// 세로 이동 거리
 				touchEvents.move_dx = ( drag_dist / list_Width ) * 100;			// 가로 이동 백분률
 
-				if ( Math.abs( drag_dist ) > Math.abs( scroll_dist )){ // 드래그길이가 스크롤길이 보다 클때
-					touchEvents.move_dx = Math.max( -BASE_ROTATE, Math.min( BASE_ROTATE, touchEvents.move_dx ));
+				// 드래그길이가 스크롤길이 보다 클때
+				if ( Math.abs( drag_dist ) > Math.abs( scroll_dist )){ 
+					touchEvents.move_dx = Math.max( -100, Math.min( 100, touchEvents.move_dx ));
 					helper.setListTransition( 0, touchEvents.move_dx );
 				}
 				
@@ -422,7 +421,7 @@ function CubeSwipe( __setting ){
 				is_to_next = touchEvents.move_dx < 0,
 				can_move = is_to_next ? touchEvents.canNextMove() : touchEvents.canPrevMove();
 
-			if ( touchEvents.is_touch_start && e.type === 'touchend' && e.touches.length < 1 ){
+			if ( touchEvents.is_touch_start && e.type === 'touchend' ){
 
 				if ( over_touch && can_move ){
 					is_Move = false;
@@ -430,7 +429,10 @@ function CubeSwipe( __setting ){
 				} else {
 					helper.setListTransition( setting.duration, 0 );
 				}
+			}
 
+			if ( e.type === 'touchcancel' ){
+				is_Move = false;
 			}
 			
 			touchEvents.setInitVaiable();
@@ -445,7 +447,7 @@ function CubeSwipe( __setting ){
 			idx = 0;
 
 		// 플러그인에서 배열로 넘겨줄때 패스
-		// javascrit로 바로 들어오면 dom2Array로..
+		// javascrit로 바로 들어오면 dom2Array
 		setting = helper.extend( default_Option, __setting );
 		D_Plist = helper.isArray( setting.wrap ) ? setting.wrap : helper.dom2Array( setting.wrap ); 
 		D_List = helper.isArray( setting.list ) ? setting.list : helper.dom2Array( setting.list ); 
@@ -457,11 +459,6 @@ function CubeSwipe( __setting ){
 
 		browser_Prefix = helper.getCssPrefix();
 		list_Len = D_List.length;
-		
-		console.log( D_Plist );
-		console.log( helper.isArray( setting.wrap ));
-		console.log( setting.wrap );
-		
 		D_Plist = D_Plist[ 0 ];
 		D_Wrap = D_Plist.parentNode;
 		setting.touchMinumRange = Math.max( 1, Math.min( 100, setting.touchMinumRange ));
@@ -570,9 +567,8 @@ function CubeSwipe( __setting ){
 		list_Width = D_Wrap.offsetWidth;
 		cube_Radius = list_Width / 2;
 
-		css_txt = 'background: #fff;'
-		D_Wrap.style.cssText = css_txt;
 		helper.setCss3( D_Wrap, 'perspective', ( list_Width * 2 ) + 'px' );
+		helper.setCss3( D_Wrap, 'user-select', 'none' );
 
 		css_txt = 'position: relative; ';
 		css_txt += 'width: 100%; ';
@@ -601,6 +597,7 @@ function CubeSwipe( __setting ){
 
 		css_dom = document.createElement( 'style' );
 		css_dom.setAttribute( 'type', 'text/css' );
+		css_dom.setAttribute( 'data-swipe', 'cubeSwipe' );
 		css_dom.innerHTML = css_txt;
 		D_Wrap.appendChild( css_dom );
 
@@ -657,7 +654,7 @@ function CubeSwipe( __setting ){
 	}
 
 	/**
-	 * @method: 사이즈 변경시
+	 * @method: 화면 리사이즈
 	 */
 	function refreshSize(){
 		list_Width = D_Wrap.offsetWidth;
@@ -759,7 +756,8 @@ function CubeSwipe( __setting ){
 			return false;
 		}
 
-		if ( typeof _way === 'undefined' ){ // toSlide 함수를 직접 들어왔을 시
+		// toSlide 함수를 직접 들어왔을 시
+		if ( typeof _way === 'undefined' ){ 
 			_way = gap > 0 ? 'next' : 'prev';
 		}
 
@@ -813,7 +811,8 @@ function CubeSwipe( __setting ){
 		} else { 
 
 			// touch로 접근시
-			if ( now_pos % BASE_ROTATE === 0 ){ // 사용자가 빠르게 터치해서 이미 끝으로 도달 했을 시
+			// 사용자가 빠르게 터치해서 이미 끝으로 도달 했을 시
+			if ( now_pos % BASE_ROTATE === 0 ){
 				toSlideAnimateAfter({
 					target: D_List[ now_idx ]
 				});
