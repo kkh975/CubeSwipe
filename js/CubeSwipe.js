@@ -459,7 +459,7 @@ function CubeSwipe( __setting ){
 		list_Len = D_List.length;
 		
 		console.log( D_Plist );
-		console.log( helper.isArray( setting.wrap ) );
+		console.log( helper.isArray( setting.wrap ));
 		console.log( setting.wrap );
 		
 		D_Plist = D_Plist[ 0 ];
