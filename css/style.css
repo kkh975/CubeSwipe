@@ -9,6 +9,7 @@ body { min-width: 320px; font-family: Helvetica, sans-serif; font-size: 12px; co
 li, dd { list-style: none; }
 section, footer, address, main, header { display: block; }
 
+<<<<<<< HEAD
 /* header */
 header.wrap-header {
 	margin-top:20px;
@@ -22,6 +23,8 @@ header.wrap-header p {
 	margin-top:10px;
 }
 
+=======
+>>>>>>> e874609a0caa44079a5c62f180273b6d8ac34080
 /* footer */
 footer.wrap-footer {
 	clear: both;
